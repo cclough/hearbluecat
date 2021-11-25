@@ -66,6 +66,7 @@ def load_model(
         center=center,
         batch_size=batch_size,
         verbose=verbose,
+        sampler="julian"
     )
     return model
 
