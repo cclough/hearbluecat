@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Tuple
 
 import torch
@@ -6,6 +7,7 @@ from torch import Tensor
 import hearbluecat.torchcrepe
 import hearbluecat.wav2vec2
 import hearbluecat.torchopenl3
+
 
 class BlueCat(torch.nn.Module):
 
@@ -20,11 +22,13 @@ class BlueCat(torch.nn.Module):
         self.scene_embedding_size = 9216
         self.timestamp_embedding_size = 9216
 
+
 def load_model(model_file_path: str = ""):
     if model_file_path != "":
         print("Model weights file passed, but it is not used by HearBlueCat.")
     model = BlueCat()
     return model
+
 
 def get_timestamp_embeddings(
     audio: Tensor,
@@ -58,9 +62,13 @@ def get_timestamp_embeddings(
 
     print("Shapes of individial model embeddings: ", embeddingsA[0].shape,embeddingsB[0].shape,embeddingsC[0].shape)
 
-    # HACK: clip the last frames off of embeddings B & C so they match A
-    embeddingsB = (embeddingsB[0][:, :embeddingsA[0].shape[1], :], embeddingsB[1][:, :embeddingsA[1].shape[1]])
-    embeddingsC = (embeddingsC[0][:, :embeddingsA[0].shape[1], :], embeddingsC[1][:, :embeddingsA[1].shape[1]])
+    # HACK: clip the last frames off the two longest embeddings, by the length of the shortest
+    shortest_idx = np.argmin([embeddingsA[0].shape[1], embeddingsB[0].shape[1], embeddingsC[0].shape[1]])
+    new_frame_count = [embeddingsA, embeddingsB, embeddingsC][shortest_idx][0].shape[1]
+
+    embeddingsA = (embeddingsA[0][:, :new_frame_count, :], embeddingsA[1][:, :new_frame_count])
+    embeddingsB = (embeddingsB[0][:, :new_frame_count, :], embeddingsB[1][:, :new_frame_count])
+    embeddingsC = (embeddingsC[0][:, :new_frame_count, :], embeddingsC[1][:, :new_frame_count])
 
     print("Shapes of individial model embeddings after end clipping: ", embeddingsA[0].shape,embeddingsB[0].shape,embeddingsC[0].shape)
 
