@@ -20,7 +20,9 @@ class BlueCat(torch.nn.Module):
         self.scene_embedding_size = 9216
         self.timestamp_embedding_size = 9216
 
-def load_model():
+def load_model(model_file_path: str = ""):
+    if model_file_path != "":
+        print("Model weights file passed, but it is not used by HearBlueCat.")
     model = BlueCat()
     return model
 
